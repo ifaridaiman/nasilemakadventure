@@ -1,0 +1,70 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+// Stall Model
+model Stall {
+  id               Int              @id @default(autoincrement())
+  name             String
+  location         String?
+  negeri           String
+  category         StallCategory     @relation(fields: [categoryId], references: [id])
+  categoryId       Int
+  halalInfo        HalalInfo         @relation(fields: [halalInfoId], references: [id])
+  halalInfoId      Int
+  paymentInfo      PaymentInfo       @relation(fields: [paymentInfoId], references: [id])
+  paymentInfoId    Int
+  stallType        StallType         @relation(fields: [stallTypeId], references: [id])
+  stallTypeId      Int
+  latitude         Float?
+  longitude        Float?
+  mustTryCombos    MustTryCombination[]
+}
+
+// Stall Category Model
+model StallCategory {
+  id     Int      @id @default(autoincrement())
+  category String
+  stalls Stall[]
+}
+
+// Halal Info Model
+model HalalInfo {
+  id           Int      @id @default(autoincrement())
+  halalStatus  String
+  stalls       Stall[]
+}
+
+// Payment Info Model
+model PaymentInfo {
+  id            Int      @id @default(autoincrement())
+  paymentMethod String
+  stalls        Stall[]
+}
+
+// Stall Type Model
+model StallType {
+  id         Int      @id @default(autoincrement())
+  stallType  String
+  stalls     Stall[]
+}
+
+// Must Try Combination Model
+model MustTryCombination {
+  id             Int      @id @default(autoincrement())
+  suggestedCombo String
+  stall          Stall    @relation(fields: [stallId], references: [id])
+  stallId        Int
+}
