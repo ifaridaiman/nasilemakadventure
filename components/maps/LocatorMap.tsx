@@ -1,11 +1,13 @@
 // components/Map.tsx
 "use client";
-import { useState, useRef } from "react";
-import { MapContainer, TileLayer, useMapEvents } from "react-leaflet";
+import { useState, useRef, useEffect } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import  { Map as LeafletMap } from "leaflet"; // Import Leaflet types
 
-export default function Map() {
+
+export default function LocatorMap({ userLocation, goTo }: { userLocation: [number, number] | null, goTo: (latLng: [number, number]) => void }
+) {
   const [center, setCenter] = useState<[number, number]>([3.140853, 101.693207]); // Type for LatLng
   const mapRef = useRef<LeafletMap | null>(null); // Type for Leaflet map
   
@@ -20,10 +22,18 @@ export default function Map() {
     return null;
   };
 
+  useEffect(() => {
+    if (userLocation) {
+      console.log("User Location: ", userLocation);
+      setCenter(userLocation); // Update center when userLocation changes
+      if (mapRef.current) {
+        goTo(userLocation); // Call goTo when userLocation changes
+      }
+    }
+  }, [userLocation, goTo]);
+
   return (
-    <div>
-      <h1>Pan the Map and Drop a Marker</h1>
-      
+    <div>      
       <div className="w-96">
         <MapContainer
           center={center}
@@ -35,6 +45,11 @@ export default function Map() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
+
+          {/* Add a Marker */}
+          <Marker position={center}>
+            <Popup>Current Location: Latitude {center[0]}, Longitude {center[1]}</Popup>
+          </Marker>
           
           <HandleMapEvents />
         </MapContainer>

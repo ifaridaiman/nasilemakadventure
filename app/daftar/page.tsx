@@ -1,11 +1,59 @@
-import React from "react";
+'use client'
+import React, { useEffect, useState, useRef } from "react";
 import dynamic from "next/dynamic";
 
-const LocatorMap = dynamic(() => import("@/components/maps/LocatorMap"), {ssr: false});
+const LocatorMap = dynamic(() => import("@/components/maps/LocatorMap"), {
+  ssr: false,
+});
 
-const page = () => {
+type stallType = {
+  id: number;
+  stallType: string;
+}
+
+const Page = () => {
+  const [data, setData] = useState<stallType[]>([]);
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+  const mapRef = useRef<L.Map | null>(null);
+
+  useEffect(() => {
+    fetch("/api/collect/stallType")
+      .then((response) => response.json())
+      .then((data) => {
+        setData(data);
+        console.log(data);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
+  }, []);
+
+  useEffect(() => {
+    console.log(data);
+  }, [data]);
+
+  const handleLocateMe = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        const { latitude, longitude } = position.coords;
+        setUserLocation([latitude, longitude]);
+        goTo([latitude, longitude]); // Call the goTo function to pan/zoom to location
+      }, (error) => {
+        console.error("Error fetching location:", error);
+      });
+    } else {
+      console.error("Geolocation is not supported by this browser.");
+    }
+  }
+
+  const goTo = (latLng: [number, number]) => {
+    if (mapRef.current) {
+      const map = mapRef.current;
+      map.flyTo(latLng,13,{duration: 1.5}); // Fly to the new location with zoom level 13
+    }
+  };
   return (
-    <div className="container mx-auto min-h-full flex flex-col justify-center mb-12 mt-4 lg:mt-6">
+    <div className="max-w-7xl mx-auto min-h-full flex flex-col justify-center mb-12 mt-4 lg:mt-6">
       <h1 className="text-3xl font-bold text-gray-900">Daftar Nasi Lemak</h1>
       <div className="bg-white overflow-hidden shadow rounded-lg mt-4">
         <div className="px-4 py-5 sm:p-6">
@@ -56,8 +104,16 @@ const page = () => {
                     >
                       {`Location`}
                     </label>{" "}
+                    
                     <div className="mt-1 sm:self-center flex items-center">
-                      <LocatorMap />
+                      <LocatorMap userLocation={userLocation} goTo={goTo}/>
+                      
+                      <button
+                        onClick={handleLocateMe}
+                        className="bg-blue-500 text-white px-4 py-2 rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      >
+                        Locate Me
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -79,7 +135,7 @@ const page = () => {
                         />
                         <label className="ml-3 block text-sm " htmlFor="tag_6">
                           <span className="font-medium text-gray-700">
-                          🌅 Early Morning
+                            🌅 Early Morning
                           </span>
                           <div className="text-gray-500 sm:inline">
                             <span className="hidden sm:inline">-</span>
@@ -96,7 +152,7 @@ const page = () => {
                         />
                         <label className="ml-3 block text-sm " htmlFor="tag_6">
                           <span className="font-medium text-gray-700">
-                          🌄 Breakfast
+                            🌄 Breakfast
                           </span>
                           <div className="text-gray-500 sm:inline">
                             <span className="hidden sm:inline">-</span>
@@ -130,7 +186,7 @@ const page = () => {
                         />
                         <label className="ml-3 block text-sm " htmlFor="tag_6">
                           <span className="font-medium text-gray-700">
-                          🌃 Dinner
+                            🌃 Dinner
                           </span>
                           <div className="text-gray-500 sm:inline">
                             <span className="hidden sm:inline">-</span>
@@ -158,9 +214,12 @@ const page = () => {
                             name="halal"
                             value="halal"
                           />
-                          <label className="ml-3 block text-sm " htmlFor="tag_6">
+                          <label
+                            className="ml-3 block text-sm "
+                            htmlFor="tag_6"
+                          >
                             <span className="font-medium text-gray-700">
-                            👳🏻 Muslim Own
+                              👳🏻 Muslim Own
                             </span>
                             <div className="text-gray-500 sm:inline">
                               <span className="hidden sm:inline">-</span>
@@ -175,7 +234,10 @@ const page = () => {
                             name="nonHalal"
                             value="nonHalal"
                           />
-                          <label className="ml-3 block text-sm " htmlFor="tag_6">
+                          <label
+                            className="ml-3 block text-sm "
+                            htmlFor="tag_6"
+                          >
                             <span className="font-medium text-gray-700">
                               Non-Halal
                             </span>
@@ -206,9 +268,12 @@ const page = () => {
                             name="cash"
                             value="cash"
                           />
-                          <label className="ml-3 block text-sm " htmlFor="tag_6">
+                          <label
+                            className="ml-3 block text-sm "
+                            htmlFor="tag_6"
+                          >
                             <span className="font-medium text-gray-700">
-                            💵 Cash Only
+                              💵 Cash Only
                             </span>
                             <div className="text-gray-500 sm:inline">
                               <span className="hidden sm:inline">-</span>
@@ -223,9 +288,12 @@ const page = () => {
                             name="cashLess"
                             value="cashLess"
                           />
-                          <label className="ml-3 block text-sm " htmlFor="tag_6">
+                          <label
+                            className="ml-3 block text-sm "
+                            htmlFor="tag_6"
+                          >
                             <span className="font-medium text-gray-700">
-                            📱 CashLess
+                              📱 CashLess
                             </span>
                             <div className="text-gray-500 sm:inline">
                               <span className="hidden sm:inline">-</span>
@@ -250,10 +318,16 @@ const page = () => {
                     </label>{" "}
                     <div className="mt-1 sm:self-center flex items-center">
                       <select className="block max-w-lg w-full border border-gray-800 rounded p-2">
-                        <option value="stall">🏪 Stall Pacak</option>
-                        <option value="warung">⛱ Warung</option>
+                        {data.length > 0 ? (
+                          data.map((stallType, index) => (
+                            <option key={index} value={stallType.id}>
+                              {stallType.stallType}
+                            </option>
+                          ))
+                        ) : (
+                          <option disabled>Loading...</option>
+                        )}
                       </select>
-                      
                     </div>
                   </div>
                 </div>
@@ -296,4 +370,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;
